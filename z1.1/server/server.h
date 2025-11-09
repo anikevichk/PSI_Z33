@@ -1,21 +1,10 @@
-#ifndef SERVER_UDP_H
-#define SERVER_UDP_H
+#ifndef UDP_SERVER_H
+#define UDP_SERVER_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#define MAX_DGRAM     65535
+#define DEFAULT_HOST "0.0.0.0"
+#define DEFAULT_PORT  8000
 
-#define MAX_BUFFER 1024
-#define DEFAULT_PORT 8000
-#define DEFAULT_ADDR "127.0.0.1"
-
-int  createServerSocket();
-void bindSocket(int serverSocket, struct sockaddr_in *serverAddress);
-void processReceivedData(int serverSocket, struct sockaddr_in *clientAddress);
+static inline int Work(void) { return 1; }
 
 #endif
-
