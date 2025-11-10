@@ -1,21 +1,17 @@
 #!/bin/bash
 set -e
 
-#budowanie obrazu serwera
-docker build -q -t server ./server
+cd server
+docker build -t z33_server_image .
+docker run -d --rm --name z33_server --network z33_network z33_server_image
+cd ..
 
-#uruchomienie serwera w tle
-docker run -d --rm --replace -p 8000:8000/udp --name udp-server server
+sleep 5
 
-sleep 1
-
-#uruchomienie klienta
 cd client
-python3 client.py 127.0.0.1 8000
+docker build -t z33_client_image .
+docker run -it --rm --name z33_client --network z33_network z33_client_image z33_server_image 8000
+cd ..
 
-#tworzenie wykresu
-python3 plot_rezult.py rezult.txt
-
-#zatrzymanie serwera
-docker stop udp-server
+docker stop z33_server
 

@@ -1,4 +1,3 @@
-#include "server.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,34 +7,57 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-int main(int argc, char **argv){
+#define MAX_DGRAM 65536
+#define HOST_ADDRESS "0.0.0.0"
+#define PORT_NUMBER 8000
+
+int main(int argc, char **argv) {
     setbuf(stdout, NULL);
-    const char *host = (argc > 1 ? argv[1] : "127.0.0.1");
-    int          port = (argc > 2 ? atoi(argv[2]) : 8000);
 
-    int s = socket(AF_INET, SOCK_DGRAM, 0);
-    if (s < 0) { perror("socket"); return 1; }
+    unsigned char receiveBuffer[MAX_DGRAM];
 
-    struct sockaddr_in sa;
-    memset(&sa, 0, sizeof sa);
-    sa.sin_family = AF_INET;
-    sa.sin_port   = htons(port);
-    if (inet_pton(AF_INET, host, &sa.sin_addr) != 1) {
-        fprintf(stderr, "Bad host: %s\n", host); return 1;
+    const char *hostAddress = HOST_ADDRESS;
+    int portNumber = PORT_NUMBER;
+
+    int serverSocket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (serverSocket < 0) { perror("socket"); return 1; }
+
+    struct sockaddr_in serverAddress;
+
+    memset(&serverAddress, 0, sizeof serverAddress);
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port   = htons(portNumber);
+
+    if (inet_pton(AF_INET, hostAddress, &serverAddress.sin_addr) != 1) {
+        fprintf(stderr, "Bad host: %s\n", hostAddress); return 1;
     }
-    if (bind(s, (struct sockaddr*)&sa, sizeof sa) < 0) {
+
+    if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof serverAddress) < 0) {
         perror("bind"); return 1;
     }
-    printf("UDP echo listening on %s:%d\n", host, port);
 
-    unsigned char buf[MAX_DGRAM];
-    while (Work()) {
-        struct sockaddr_in cli; socklen_t clen = sizeof cli;
-        ssize_t n = recvfrom(s, buf, sizeof buf, 0, (struct sockaddr*)&cli, &clen);
-        if (n < 0) { perror("recvfrom"); continue; }
-        if (sendto(s, buf, (size_t)n, 0, (struct sockaddr*)&cli, clen) < 0)
+    printf("UDP echo listening on %s:%d\n", hostAddress, portNumber);
+
+
+    while (1) {
+        struct sockaddr_in clientAddress;
+        socklen_t clientAddressLength = sizeof clientAddress;
+
+        ssize_t receivedBytes = recvfrom(serverSocket, receiveBuffer, sizeof receiveBuffer, 0, (struct sockaddr*)&clientAddress, &clientAddressLength);
+        if (receivedBytes < 0) {
+            perror("recvfrom");
+            continue;
+        }
+
+        printf("Received %zd bytes from client\n", receivedBytes);
+
+        if (sendto(serverSocket, receiveBuffer, (size_t)receivedBytes, 0, (struct sockaddr*)&clientAddress, clientAddressLength) < 0) {
             perror("sendto");
+        } else {
+            printf("Sent %zd bytes back to client\n", receivedBytes);
+        }
     }
-    close(s);
+
+    close(serverSocket);
     return 0;
 }
