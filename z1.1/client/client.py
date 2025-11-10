@@ -1,18 +1,20 @@
-import socket, sys, time, statistics, csv
+import socket
+import time
+import statistics
+import csv
 
-HOST = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
-PORT = int(sys.argv[2] if len(sys.argv) > 2 else 8000)
-
+HOST = "172.21.33.2"
+PORT = 8000
 UDP_MAX = 65507
 SIZES = []
+
 s = 2
 while s <= UDP_MAX:
     SIZES.append(s)
     s *= 2
 if SIZES[-1] != UDP_MAX:
     SIZES.append(UDP_MAX)
-
-def avg_rtt(size, trials=5, timeout=2.0):
+def avg_rtt(size, trials=5, timeout=5.0):
     payload = b'a' * size
     rtts = []
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -22,11 +24,13 @@ def avg_rtt(size, trials=5, timeout=2.0):
         sock.sendto(payload, (HOST, PORT))
         try:
             data, _ = sock.recvfrom(70000)
+            if data != payload:
+                print(f"Received unexpected data: {data}")
+                return None
         except socket.timeout:
-            sock.close(); return None
+            print(f"Request timeout for packet size {size} bytes")
+            return None
         t1 = time.perf_counter_ns()
-        if data != payload:
-            sock.close(); return None
         rtts.append((t1 - t0) / 1e6)
     sock.close()
     return statistics.mean(rtts)
@@ -44,8 +48,10 @@ for sz in SIZES:
     max_ok = sz
 
 with open("rezults.csv", "w", newline="") as f:
-    w = csv.DictWriter(f, fieldnames=["size_B","avg_rtt_ms"])
-    w.writeheader(); w.writerows(rows)
+    writer = csv.DictWriter(f, fieldnames=["size_B", "avg_rtt_ms"])
+    writer.writeheader()
+    writer.writerows(rows)
+
 
 print(f"\nMAX poprawnie obsługiwany payload ≈ {max_ok} B")
 print("Wyniki zapisane do rezults.csv")
