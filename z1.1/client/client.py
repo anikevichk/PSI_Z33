@@ -7,6 +7,7 @@ HOST = "172.21.33.2"
 PORT = 8000
 UDP_MAX_PAYLOAD = 65507
 
+
 def build_test_sizes(max_payload):
     sizes = []
     size = 2
@@ -17,8 +18,9 @@ def build_test_sizes(max_payload):
         sizes.append(max_payload)
     return sizes
 
+
 def measure_avg_rtt(payload_size, trials=1, timeout=5.0):
-    payload = b'a' * payload_size
+    payload = b"a" * payload_size
     rtts_ms = []
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -43,6 +45,7 @@ def measure_avg_rtt(payload_size, trials=1, timeout=5.0):
     sock.close()
     return statistics.mean(rtts_ms)
 
+
 def find_max_supported_size(test_sizes):
     print("size_B,avg_rtt_ms")
     results_rows = []
@@ -61,7 +64,7 @@ def find_max_supported_size(test_sizes):
         last_ok_size = size
 
     if last_ok_size is None:
-        print("Żaden rozmiar nie został poprawnie obsłużony.")
+        print("No payload size was handled correctly.")
         return None, results_rows
 
     if first_fail_size is None:
@@ -80,7 +83,9 @@ def find_max_supported_size(test_sizes):
             high_fail = mid
         else:
             print(f"{mid},{avg_rtt:.3f}")
-            results_rows.append({"size_B": mid, "avg_rtt_ms": f"{avg_rtt:.3f}"})
+            results_rows.append(
+                {"size_B": mid, "avg_rtt_ms": f"{avg_rtt:.3f}"}
+            )
             low_ok = mid
 
     max_supported_size = low_ok
