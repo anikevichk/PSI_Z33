@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define MAX_DGRAM 65536
+#define MAX_DGRAM 44444
 #define HOST_ADDRESS "0.0.0.0"
 #define PORT_NUMBER 8000
 
