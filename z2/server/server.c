@@ -44,7 +44,7 @@ int main(){
         sizeof(serverAddr));
 
     if (listen(serverSocket, 50) == 0){
-        printf("Listening\n");
+        printf("Listening \n");
     }
     else{
         printf("Error\n");
