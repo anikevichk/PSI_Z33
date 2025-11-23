@@ -73,7 +73,10 @@ int main(){
                 receiveBuffer[receivedBytes] = '\0';
             }
             unsigned long hash = djb2(receiveBuffer);
-            send(newSocket, receiveBuffer, (size_t)receivedBytes, 0);
+            char hashStr[20];
+            sprintf(hashStr, "%lx", hash);  
+            send(newSocket, hashStr, strlen(hashStr), 0);
+
             exit(0);
         }
         else{
