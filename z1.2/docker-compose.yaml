@@ -1,0 +1,16 @@
+version: "3.0"
+
+services:
+  server:
+    container_name: udp_server
+    build: ./server     
+    tty: true
+    cap_add:
+      - NET_ADMIN        
+
+  client:
+    container_name: udp_client
+    build: ./client      
+    tty: true
+    cap_add:
+      - NET_ADMIN
