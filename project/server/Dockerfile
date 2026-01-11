@@ -1,3 +1,5 @@
 FROM python:3
-ADD server.py /
-ENTRYPOINT [ "python", "./server.py" ]
+WORKDIR /app
+COPY common.py /app/common.py
+COPY server/server.py /app/server.py
+CMD ["python", "/app/server.py"]
