@@ -12,12 +12,15 @@ def main():
         print(f"Connected to {host}:{PORT}")
 
         cli_priv, cli_pub = dh_generate_keypair()
-        send_frame(s, {"type": "ClientHello", "ClientPublicKey": str(cli_pub)})
+        send_frame(s, {
+            "type": "ClientHello",
+            "dh_pub": cli_pub
+        })
 
         msg = recv_frame(s)
         if msg.get("type") != "ServerHello":
             raise RuntimeError("Expected ServerHello")
-        srv_pub = int(msg["ServerPublicKey"])
+        srv_pub = int(msg["dh_pub"])
         if not (2 <= srv_pub <= P - 2):
             raise RuntimeError("Bad server public key")
 
@@ -37,23 +40,27 @@ def main():
                 continue
 
             if line == "/quit":
-                inner = {"innerType": "EndSession"}
+                inner = {"type": "END_SESSION"}
                 send_frame(s, make_encrypted_record(k_enc_out, k_mac_out, send_seq, inner))
                 send_seq += 1
                 print("Sent EndSession")
                 break
 
-            inner = {"innerType": "Data", "text": line}
+            inner = {
+                "type": "DATA",
+                "text": line
+            }
             send_frame(s, make_encrypted_record(k_enc_out, k_mac_out, send_seq, inner))
             send_seq += 1
 
             rec = recv_frame(s)
             inner_reply = open_encrypted_record(k_enc_in, k_mac_in, recv_seq, rec)
             recv_seq += 1
-            if inner_reply.get("innerType") == "Data":
+            if inner_reply.get("type") == "DATA":
                 print(f"Server: {inner_reply.get('text','')}")
             else:
-                print("Server sent non-data reply:", inner_reply)
+                print("Server sent:", inner_reply)
+
 
 if __name__ == "__main__":
     main()
